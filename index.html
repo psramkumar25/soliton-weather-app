@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main>
+      <!-- Top Section -->
+      <!-- 
+        1. entire top-section is a flex-container
+        2. city-info is a grid
+          2.1 city-img
+          2.2 city-selector
+          2.3 city-time
+        3. readings is a table
+        4. prediction is a flex-container
+      -->
+      <section id="top-section" class="flex-container">
+        <div class="bg-cloud"></div>
+        <div id="city-info" class="grid-container">
+          <img class src="./Assets/Cities/kolkata.svg" alt="city-image" id="city-img" />
+          <select name="cities" id="city-selector">
+            <!-- List of cities dynamically inserted here -->
+            <option value="kolkata" selected>Kolkata</option>
+          </select>
+          <div>
+            <!-- DO NOT REMOVE THIS! Empty div element used for filling a grid space. -->
+          </div>
+          <div id="date-time">
+            <p id="time">
+              <span id="hh-mm">10:10</span>
+              <span id="sec">:44</span>
+              <img id="am-pm" src="./Assets/General/amState.svg" alt="am/pm" />
+            </p>
+            <p id="date">01-Mar-2020</p>
+          </div>
+        </div>
+
+        <div id="readings">
+          <div id="readings-table" class="grid-container">
+            <div class="item sep">
+              <div class="label">
+                <p>Temp &deg;C</p>
+              </div>
+              <div class="value">
+                <p>
+                  <span id="value">25</span>
+                  C
+                </p>
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">
+                <p>Humidity</p>
+              </div>
+              <div class="value">
+                <p>
+                  <span id="value">26</span>
+                  <span class="lite">%</span>
+                </p>
+              </div>
+            </div>
+            <div class="label"><br /></div>
+            <div class="label"><br /></div>
+            <div class="item sep">
+              <div class="label">
+                <p>Temp &deg;F</p>
+              </div>
+              <div class="value">
+                <p>
+                  <span id="value">78</span>
+                  F
+                </p>
+              </div>
+            </div>
+            <div class="item">
+              <div class="label">
+                <p>Precipitation</p>
+              </div>
+              <div class="value">
+                <p>
+                  <span id="value">0</span>
+                  <span class="lite">%</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="prediction-container">
+          <div id="prediction-times" class="flex-container">
+            <div class="prediction-slot">
+              <p class="time">NOW</p>
+              <div>
+                <img src="./Assets/Weather Icons/cloudyIcon.svg" alt="weather icon" />
+                <p class="temperature">6</p>
+              </div>
+            </div>
+            <div class="prediction-slot">
+              <p class="time">11 AM</p>
+              <div>
+                <img src="./Assets/Weather Icons/cloudyIcon.svg" alt="weather icon" />
+                <p class="temperature">7</p>
+              </div>
+            </div>
+            <div class="prediction-slot">
+              <p class="time">12 PM</p>
+              <div>
+                <img src="./Assets/Weather Icons/cloudyIcon.svg" alt="weather icon" />
+                <p class="temperature">7</p>
+              </div>
+            </div>
+            <div class="prediction-slot">
+              <p class="time">1 PM</p>
+              <div>
+                <img src="./Assets/Weather Icons/cloudyIcon.svg" alt="weather icon" />
+                <p class="temperature">8</p>
+              </div>
+            </div>
+            <div class="prediction-slot">
+              <p class="time">2 PM</p>
+              <div>
+                <img src="./Assets/Weather Icons/cloudyIcon.svg" alt="weather icon" />
+                <p class="temperature">8</p>
+              </div>
+            </div>
+            <div class="prediction-slot">
+              <p class="time">3 PM</p>
+              <div>
+                <img src="./Assets/Weather Icons/cloudyIcon.svg" alt="weather icon" />
+                <p class="temperature">6</p>
+              </div>
+            </div>
+          </div>
+          <div id="timeline" class="flex-container">
+            <div class="timescale">|</div>
+            <div class="timescale">|</div>
+            <div class="timescale">|</div>
+            <div class="timescale">|</div>
+            <div id="last" class="timescale">|</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Middle Section -->
+      <section id="middle-section">
+        <header>
+          <p>Top cities around the world</p>
+          <div id="pref-wrapper">
+            <div>
+              <button id="pref-sunny" class="selected" type="button">
+                <img src="./Assets/Weather Icons/sunnyIcon.svg" alt="Sunny" />
+              </button>
+              <button id="pref-snowy" type="button">
+                <img src="./Assets/Weather Icons/snowflakeIcon.svg" alt="Snow" />
+              </button>
+              <button id="pref-rainy" type="button">
+                <img src="./Assets/Weather Icons/rainyIcon.svg" alt="Rainy" />
+              </button>
+            </div>
+            <label for="top-cities">Display Top</label>
+            <input type="number" name="top-cities" id="top-count" min="3" max="10" value="4" />
+          </div>
+        </header>
+
+        <div id="city-info-wrapper" class="flex-container">
+          <div class="left arrow">
+            <div>
+              <button><img src="./Assets/General/backwardArrow.svg" alt="Scroll Left" /></button>
+            </div>
+          </div>
+          <div id="top-cities" class="container flex-container">
+            <!-- Template Card
+            -->
+            <div class="card">
+              <div class="bg-city"></div>
+              <div class="city-head">
+                <h3 class="city-name">Kolkata</h3>
+                <img src="./Assets/Weather Icons/sunnyIcon.svg" alt="" class="weather-icon" />
+                <p class="temp">25&deg;C</p>
+              </div>
+              <p class="time">10:00 AM</p>
+              <p class="date">2-MAR-2020</p>
+              <div class="icon-value">
+                <img src="./Assets/Weather Icons/humidityIcon.svg" alt="Humidity" class="humidity-icon" />
+                <p class="pct">53%</p>
+              </div>
+              <div class="icon-value">
+                <img
+                  src="./Assets/Weather Icons/precipitationIcon.svg"
+                  alt="Precipitation"
+                  class="precipitation-icon"
+                />
+                <p class="pct">10%</p>
+              </div>
+            </div>
+          </div>
+          <div class="right arrow">
+            <div>
+              <button><img src="./Assets/General/forwardArrow.svg" alt="Scroll Right" /></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Section -->
+      <section id="bottom-section">
+        <header>
+          <p id="table-header">Cities across continents at a Glance</p>
+          <div id="table-sort">
+            <p for="continent-sort">Continent&nbsp;Name</p>
+            <!-- <button id="continent-sort" name="continent-sort" type="button"> -->
+            <img src="./Assets/General/arrowDown.svg" alt="Sort by Continent" class="sort-img" id="conti-sort" />
+            <!-- </button> -->
+            <p for="temp-sort">Temperature</p>
+            <!-- <button id="temp-sort" name="temp-sort" type="button"> -->
+            <img src="./Assets/General/arrowUp.svg" alt="Sort by Temperature" class="sort-img" id="temp-sort" />
+            <!-- </button> -->
+          </div>
+        </header>
+
+        <div class="grid-container" id="cities-table">
+          <!-- Template city card
+          -->
+          <div class="city-card">
+            <p class="continent">Asia</p>
+            <p class="temp">38&deg;C</p>
+            <p class="city">Delhi, 10:10 AM</p>
+            <div class="icon-value">
+              <img src="./Assets/Weather Icons/humidityIcon.svg" alt="Humidity" class="humidity-icon" />
+              <p class="pct">53%</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
