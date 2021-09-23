@@ -7,48 +7,35 @@ const icon_dir = "./Assets/Weather Icons/";
 const cities_dir = "./Assets/Cities/";
 const general_dir = "./Assets/General/";
 
-const city_info = document.getElementById("city-info");
-const city_selector = document.getElementById("city-selector");
-const city_img = document.getElementById("city-img");
-const date = document.getElementById("date");
-const time = document.getElementById("hh-mm");
-const am_pm = document.getElementById("am-pm");
-const time_sec = document.getElementById("sec");
-const values = document.querySelectorAll("#readings #value");
-const forecast_temp = document.querySelectorAll("#prediction-container p.temperature");
-const forecast_time = document.querySelectorAll("#prediction-container p.time");
-const forecast_img = document.querySelectorAll("#prediction-container img");
-const sunny_btn = document.querySelector("button#pref-sunny");
-const snowy_btn = document.querySelector("button#pref-snowy");
-const rainy_btn = document.querySelector("button#pref-rainy");
-const top_count = document.getElementById("top-count");
-const top_cities = document.getElementById("top-cities");
-const cities_table = document.getElementById("cities-table");
-const conti_sort = document.getElementById("conti-sort");
-const temp_sort = document.getElementById("temp-sort");
+// Prototype for City
+function City({ cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs }) {
+  Object.assign(this, { cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs });
+  this.conti = this.timeZone.split("/")[0];
+  this.temp = parseInt(this.temperature);
+  this.humid = parseInt(this.humidity);
+  this.prcp = parseInt(this.precipitation);
+}
 
-let cities_arr = Object.values(data);
-cities_arr.forEach((c) => {
-  c.conti = c.timeZone.split("/")[0];
-  c.temp = parseInt(c.temperature);
-  c.humid = parseInt(c.humidity);
-  c.prcp = parseInt(c.precipitation);
-});
+City.prototype.forecast = function () {
+  return this.nextFiveHrs;
+};
 
-const cities_list = Object.keys(data);
+let cities_arr = Object.values(data).map((c) => new City(c));
+
+// const cities_list = Object.keys(data);
 
 // ----------  TOP SECTION  ----------
 
 window.onload = () => {
   // city_selector.selectedIndex = 0;
-  let rnd_idx = Math.floor(Object.keys(data).length * Math.random());
+  let rnd_idx = Math.floor(cities_arr.length * Math.random());
   city_selector.dispatchEvent(new CustomEvent("input", { detail: { index: rnd_idx } }));
 };
 
-for (let city of cities_list) {
+for (let city of cities_arr) {
   let opt = document.createElement("option");
-  opt.setAttribute("value", city);
-  opt.textContent = data[city].cityName;
+  opt.setAttribute("value", city.cityName.toLowerCase());
+  opt.textContent = city.cityName;
   city_selector.appendChild(opt);
 }
 
@@ -98,7 +85,8 @@ function getTimeZone(city_name) {
   if (!city_name) {
     city_name = city_selector.value;
   }
-  let tz = data[city_name].timeZone;
+  let current_city = cities_arr.filter((c) => c.cityName.toLowerCase() === city_name)[0];
+  let tz = current_city.timeZone;
   return tz;
 }
 function updateTimeline() {
@@ -128,25 +116,27 @@ function cityChange(e) {
   }
 
   let city_name = e.target.value;
+  // let current_city = cities_arr.filter((c) => c.cityName.toLowerCase() === city_name)[0];
+  let current_city = cities_arr[e.target.selectedIndex];
   updateDateTime();
 
-  city_img.setAttribute("src", `./Assets/Cities/${city_name}.svg`);
+  city_img.setAttribute("src", `./Assets/Cities/${current_city.cityName}.svg`);
 
   let readings = [
-    parseInt(data[city_name].temperature),
-    parseInt(data[city_name].humidity),
-    Math.floor(parseInt(data[city_name].temperature) * 1.8 + 32),
-    parseInt(data[city_name].precipitation),
+    parseInt(current_city.temperature),
+    parseInt(current_city.humidity),
+    Math.floor(parseInt(current_city.temperature) * 1.8 + 32),
+    parseInt(current_city.precipitation),
   ];
   for (let i of values.keys()) {
     values[i].innerText = readings[i];
   }
 
-  let forecast_values = data[city_name].nextFiveHrs;
-  forecast_values.unshift(data[city_name].temperature);
+  let forecast_values = current_city.forecast();
+  forecast_values.unshift(current_city.temperature);
   // adding the current temp twice because incoming data only has 4 values
   // but 5 values is expected.
-  forecast_values.unshift(data[city_name].temperature);
+  forecast_values.unshift(current_city.temperature);
   forecast_values = forecast_values.map((x) => parseInt(x));
 
   for (let i of forecast_temp.keys()) {
@@ -387,12 +377,13 @@ function sort_handler(evt) {
 function updateTable() {
   let c_a = conti_sort.order ? 1 : -1;
   let t_a = temp_sort.order ? 1 : -1;
-  cities_arr.sort(sort_order(c_a, t_a));
+  let cities_copy = [...cities_arr];
+  cities_copy.sort(sort_order(c_a, t_a));
   cities_table.replaceChildren();
   // while (cities_table.firstElementChild) {
   //   cities_table.removeChild(cities_table.lastElementChild);
   // }
-  cities_arr.forEach((c) => addCityToTable(c));
+  cities_copy.forEach((c) => addCityToTable(c));
 }
 
 // ----------  BOTTOM SECTION-END  ----------
