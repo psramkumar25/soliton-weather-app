@@ -8,17 +8,18 @@ const cities_dir = "./Assets/Cities/";
 const general_dir = "./Assets/General/";
 
 // Prototype for City
-function City({ cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs }) {
-  Object.assign(this, { cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs });
-  this.conti = this.timeZone.split("/")[0];
-  this.temp = parseInt(this.temperature);
-  this.humid = parseInt(this.humidity);
-  this.prcp = parseInt(this.precipitation);
+class City {
+  constructor({ cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs }) {
+    Object.assign(this, { cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs });
+    this.conti = this.timeZone.split("/")[0];
+    this.temp = parseInt(this.temperature);
+    this.humid = parseInt(this.humidity);
+    this.prcp = parseInt(this.precipitation);
+  }
+  forecast() {
+    return this.nextFiveHrs;
+  }
 }
-
-City.prototype.forecast = function () {
-  return this.nextFiveHrs;
-};
 
 let cities_arr = Object.values(data).map((c) => new City(c));
 
