@@ -8,9 +8,9 @@ const cities_dir = "./Assets/Cities/";
 const general_dir = "./Assets/General/";
 let cities_arr = [];
 
-const city_all_data_url = "https://soliton.glitch.me/all-timezone-cities";
-const city_time_url = "https://soliton.glitch.me?city=";
-const city_forecast_url = "https://soliton.glitch.me/hourly-forecast";
+const city_all_data_url = "http://localhost:3000/all-timezone-cities"; // "https://soliton.glitch.me/all-timezone-cities";
+const city_time_url = "http://localhost:3000/time?city="; // "https://soliton.glitch.me?city=";
+const city_forecast_url = "http://localhost:3000/hourly-forecast"; // "https://soliton.glitch.me/hourly-forecast";
 
 // Prototype for City
 class City {
