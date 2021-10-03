@@ -2,66 +2,104 @@
 // import * as handles from "./handle-selector.js";
 
 const log = console.log;
-const oneHr = 60 * 60 * 1000;
+const oneHr = 5 * 1000; // 60 * 60 * 1000;
 const icon_dir = "./Assets/Weather Icons/";
 const cities_dir = "./Assets/Cities/";
 const general_dir = "./Assets/General/";
+let cities_arr = [];
+
+const city_all_data_url = "https://soliton.glitch.me/all-timezone-cities";
+const city_time_url = "https://soliton.glitch.me?city=";
+const city_forecast_url = "https://soliton.glitch.me/hourly-forecast";
 
 // Prototype for City
 class City {
-  constructor({ cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs }) {
-    Object.assign(this, { cityName, dateAndTime, timeZone, temperature, humidity, precipitation, nextFiveHrs });
+  constructor({ cityName, dateAndTime, timeZone, temperature, humidity, precipitation }) {
+    Object.assign(this, { cityName, dateAndTime, timeZone, temperature, humidity, precipitation });
+    this.nextFiveHrs = [];
     this.conti = this.timeZone.split("/")[0];
     this.temp = parseInt(this.temperature);
     this.humid = parseInt(this.humidity);
     this.prcp = parseInt(this.precipitation);
   }
-  forecast() {
+  async forecast() {
+    let response_time = await fetch(city_time_url + this.cityName);
+    let time = await response_time.json();
+    let myHeaders = { "Content-Type": "application/json" };
+    let body = { ...time, hours: 5 };
+    let requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: JSON.stringify(body),
+      redirect: "follow",
+    };
+    let response_forecast = await fetch(city_forecast_url, requestOptions);
+    let data_forecast = await response_forecast.json();
+    this.nextFiveHrs = data_forecast.temperature;
     return this.nextFiveHrs;
   }
 }
 
-let cities_arr = Object.values(data).map((c) => new City(c));
+city_selector.addEventListener("input", cityChange);
+sunny_btn.addEventListener("click", handle_weather);
+snowy_btn.addEventListener("click", handle_weather);
+rainy_btn.addEventListener("click", handle_weather);
+top_count.addEventListener("change", handleTopCount);
+conti_sort.addEventListener("click", sort_handler);
+temp_sort.addEventListener("click", sort_handler);
+conti_sort.order = true;
+temp_sort.order = true;
 
-// const cities_list = Object.keys(data);
-
-// ----------  TOP SECTION  ----------
+async function refresh_cities() {
+  // cities_arr = Object.values(data).map((c) => new City(c));
+  let response = await fetch(city_all_data_url);
+  let data = await response.json();
+  cities_arr = data.map((c) => new City(c));
+}
 
 window.onload = () => {
-  // city_selector.selectedIndex = 0;
-  let rnd_idx = Math.floor(cities_arr.length * Math.random());
-  city_selector.dispatchEvent(new CustomEvent("input", { detail: { index: rnd_idx } }));
+  drawUI((random = true));
+
+  setInterval(() => {
+    let sec = new Date().getSeconds();
+    time_sec.textContent = `:${sec}`;
+    if (sec == 0) {
+      updateTime();
+      updateCardTime();
+    }
+  }, 1000);
+
+  setInterval(async () => {
+    drawUI();
+  }, 4 * oneHr);
 };
 
-for (let city of cities_arr) {
-  let opt = document.createElement("option");
-  opt.setAttribute("value", city.cityName.toLowerCase());
-  opt.textContent = city.cityName;
-  city_selector.appendChild(opt);
-}
-
-setInterval(() => {
-  let sec = new Date().getSeconds();
-  time_sec.textContent = `:${sec}`;
-  if (sec == 0) {
-    updateTime();
-    updateCardTime();
-  }
-}, 1000);
-
-function updateTime() {
-  let [timeString, am] = getCurrentTime();
-  time.textContent = timeString;
-  if (am.toLowerCase() == "am") {
-    am_pm.setAttribute("src", `./Assets/General/amState.svg`);
-    let [hh, mm] = timeString.split(":");
-    if (hh == 12 && mm == 0) {
-      date.textContent = getCurrentDate();
-    }
+async function drawUI(random = false) {
+  await refresh_cities();
+  refresh_city_list();
+  if (random) {
+    let rnd_idx = Math.floor(cities_arr.length * Math.random());
+    city_selector.dispatchEvent(new CustomEvent("input", { detail: { index: rnd_idx } }));
   } else {
-    am_pm.setAttribute("src", `./Assets/General/pmState.svg`);
+    city_selector.dispatchEvent(new Event("input"));
   }
+  sunny_btn.dispatchEvent(new Event("click"));
+  conti_sort.dispatchEvent(new CustomEvent("click", { detail: { value: true } }));
 }
+
+function refresh_city_list() {
+  let current_city_idx = city_selector.selectedIndex;
+  city_selector.replaceChildren();
+  cities_arr.forEach((city) => {
+    let opt = document.createElement("option");
+    opt.setAttribute("value", city.cityName.toLowerCase());
+    opt.textContent = city.cityName;
+    city_selector.appendChild(opt);
+  });
+  city_selector.selectedIndex = current_city_idx;
+}
+
+// -------------
 function getCurrentDate(city_name) {
   let tz = getTimeZone(city_name);
   let date_opt = {
@@ -89,6 +127,20 @@ function getTimeZone(city_name) {
   let current_city = cities_arr.filter((c) => c.cityName.toLowerCase() === city_name)[0];
   let tz = current_city.timeZone;
   return tz;
+}
+
+function updateTime() {
+  let [timeString, am] = getCurrentTime();
+  time.textContent = timeString;
+  if (am.toLowerCase() == "am") {
+    am_pm.setAttribute("src", `./Assets/General/amState.svg`);
+    let [hh, mm] = timeString.split(":");
+    if (hh == 12 && mm == 0) {
+      date.textContent = getCurrentDate();
+    }
+  } else {
+    am_pm.setAttribute("src", `./Assets/General/pmState.svg`);
+  }
 }
 function updateTimeline() {
   let tz = getTimeZone();
@@ -133,32 +185,24 @@ function cityChange(e) {
     values[i].innerText = readings[i];
   }
 
-  let forecast_values = current_city.forecast();
-  forecast_values.unshift(current_city.temperature);
-  // adding the current temp twice because incoming data only has 4 values
-  // but 5 values is expected.
-  forecast_values.unshift(current_city.temperature);
-  forecast_values = forecast_values.map((x) => parseInt(x));
+  current_city.forecast().then((forecast_values) => {
+    forecast_values.unshift(current_city.temperature);
+    forecast_values = forecast_values.map((x) => parseInt(x));
 
-  for (let i of forecast_temp.keys()) {
-    forecast_temp[i].innerText = forecast_values[i];
-    if (forecast_values[i] < 18) {
-      forecast_img[i].setAttribute("src", icon_dir + "cloudyIcon.svg");
-    } else if (18 <= forecast_values[i] && forecast_values[i] <= 22) {
-      forecast_img[i].setAttribute("src", icon_dir + "rainyIcon.svg");
-    } else if (23 <= forecast_values[i] && forecast_values[i] <= 29) {
-      forecast_img[i].setAttribute("src", icon_dir + "windyIcon.svg");
-    } else if (forecast_values[i] > 29) {
-      forecast_img[i].setAttribute("src", icon_dir + "sunnyIcon.svg");
+    for (let [i, temp] of forecast_values.entries()) {
+      forecast_temp[i].innerText = temp;
+      if (temp < 18) {
+        forecast_img[i].setAttribute("src", icon_dir + "cloudyIcon.svg");
+      } else if (18 <= temp && temp <= 22) {
+        forecast_img[i].setAttribute("src", icon_dir + "rainyIcon.svg");
+      } else if (23 <= temp && temp <= 29) {
+        forecast_img[i].setAttribute("src", icon_dir + "windyIcon.svg");
+      } else if (temp > 29) {
+        forecast_img[i].setAttribute("src", icon_dir + "sunnyIcon.svg");
+      }
     }
-  }
+  });
 }
-
-city_selector.addEventListener("input", cityChange);
-
-// ----------  TOP SECTION-END  ----------
-
-// ----------  MIDDLE SECTION  ----------
 
 function handle_weather(evt) {
   let btn = evt.currentTarget;
@@ -183,10 +227,6 @@ function handle_weather(evt) {
   filtered_cities.forEach((c) => top_cities.appendChild(constructCard(c)));
   updateCardTime();
 }
-sunny_btn.addEventListener("click", handle_weather);
-snowy_btn.addEventListener("click", handle_weather);
-rainy_btn.addEventListener("click", handle_weather);
-sunny_btn.dispatchEvent(new Event("click"));
 
 function filterBySunny() {
   let sunny_cities = cities_arr.filter((c) => c.temp >= 29 && c.humid < 50 && c.prcp >= 50);
@@ -304,12 +344,6 @@ function handleTopCount() {
   document.querySelector(".selected").dispatchEvent(new Event("click"));
 }
 
-top_count.addEventListener("change", handleTopCount);
-
-// ----------  MIDDLE SECTION-END  ----------
-
-// ----------  BOTTOM SECTION  ----------
-
 function addCityToTable(city_data) {
   let city_card = document.createElement("div");
   let card_continent = document.createElement("p");
@@ -361,17 +395,14 @@ function sort_order(c_a = 1, t_a = 1) {
   return mySort;
 }
 
-conti_sort.addEventListener("click", sort_handler);
-temp_sort.addEventListener("click", sort_handler);
-
-conti_sort.order = false;
-temp_sort.order = true;
-conti_sort.dispatchEvent(new Event("click"));
-
 function sort_handler(evt) {
   let tgt = evt.currentTarget;
-  let order = (tgt.order = !evt.currentTarget.order);
-  tgt.setAttribute("src", `${general_dir}${order ? "arrowUp" : "arrowDown"}.svg`);
+  if (evt.detail.value) {
+    tgt.order = evt.detail.value;
+  } else {
+    tgt.order = !evt.currentTarget.order;
+  }
+  tgt.setAttribute("src", `${general_dir}${tgt.order ? "arrowUp" : "arrowDown"}.svg`);
   updateTable();
 }
 
@@ -387,4 +418,11 @@ function updateTable() {
   cities_copy.forEach((c) => addCityToTable(c));
 }
 
+// ----------  TOP SECTION  ----------
+// ----------  TOP SECTION-END  ----------
+
+// ----------  MIDDLE SECTION  ----------
+// ----------  MIDDLE SECTION-END  ----------
+
+// ----------  BOTTOM SECTION  ----------
 // ----------  BOTTOM SECTION-END  ----------
