@@ -2,7 +2,7 @@
 // import * as handles from "./handle-selector.js";
 
 const log = console.log;
-const oneHr = 5 * 1000; // 60 * 60 * 1000;
+const oneHr = 60 * 60 * 1000;
 const icon_dir = "./Assets/Weather Icons/";
 const cities_dir = "./Assets/Cities/";
 const general_dir = "./Assets/General/";
@@ -173,7 +173,7 @@ function cityChange(e) {
   let current_city = cities_arr[e.target.selectedIndex];
   updateDateTime();
 
-  city_img.setAttribute("src", `./Assets/Cities/${current_city.cityName}.svg`);
+  city_img.setAttribute("src", `./Assets/Cities/${current_city.cityName.toLowerCase()}.svg`);
 
   let readings = [
     parseInt(current_city.temperature),
