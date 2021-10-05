@@ -173,7 +173,7 @@ function cityChange(e) {
   let current_city = cities_arr[e.target.selectedIndex];
   updateDateTime();
 
-  city_img.setAttribute("src", `./Assets/Cities/${current_city.cityName}.svg`);
+  city_img.setAttribute("src", `./Assets/Cities/${current_city.cityName.toLowerCase()}.svg`);
 
   let readings = [
     parseInt(current_city.temperature),
